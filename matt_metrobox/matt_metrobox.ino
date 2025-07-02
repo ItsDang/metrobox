@@ -1,6 +1,6 @@
 #include "WiFiS3.h"
 #include <HttpClient.h>
-
+#include "ArduinoJson.h"
 #include "arduino_secrets.h"
 
 // template based on https://github.com/amcewen/HttpClient/blob/master/examples/SimpleHttpExample/SimpleHttpExample.ino
@@ -14,7 +14,6 @@ char apikey[] = SECRET_WMATA_API_PRIMARY_KEY;
 char stationcode[] = SECRET_STATION_CODE;
 
 WiFiClient client;
-// HttpClient http;
 
 const char kHostname[] = "api.wmata.com";
 // Path to download (this is the bit after the hostname in the URL
@@ -59,12 +58,16 @@ void setup() {
   }
 }
 
+
+String groups[] = {"1", "2"};
+int group_idx = 0;
+
 void loop()
 {
   int err =0;
   
-  WiFiClient c;
-  HttpClient http(c);
+  WiFiClient wc;
+  HttpClient http(wc);
   Serial.println("making GET request");
   http.beginRequest();
   http.get(kHostname, kPath);
@@ -95,16 +98,18 @@ void loop()
       
         // Now we've got to the body, so we can print it out
         unsigned long timeoutStart = millis();
-        char c;
+        String payload;
+        char bodyByte;
         // Whilst we haven't timed out & haven't reached the end of the body
         while ( (http.connected() || http.available()) &&
                ((millis() - timeoutStart) < kNetworkTimeout) )
         {
             if (http.available())
             {
-                c = http.read();
+                bodyByte = http.read();
                 // Print out this character
-                Serial.print(c);
+                // Serial.print(bodyByte);
+                payload += bodyByte;
                
                 bodyLen--;
                 // We read something, reset the timeout counter
@@ -117,6 +122,44 @@ void loop()
                 delay(kNetworkDelay);
             }
         }
+        // 256 kB Flash, 32 kB RAM // for now storing whole thing
+        // following https://arduinojson.org/v7/example/parser/
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
+
+        // Test if parsing succeeds.
+        if (error) {
+            Serial.print(F("deserializeJson() failed: "));
+            Serial.println(error.f_str());
+            return;
+        }
+
+        // then code from original
+        int idx = 0;
+        Serial.print("T:");
+        for (JsonObject Train : doc["Trains"].as<JsonArray>()) {
+            if (Train["Group"].as<String>() == groups[group_idx]) {
+                Serial.print(Train["Line"].as<String>() + ',');
+                Serial.print(Train["Car"].as<String>() + ',');
+                Serial.print(Train["Destination"].as<String>() + ',');
+                Serial.print(Train["Min"].as<String>() + ',');
+                idx++;
+                if (idx == 3) {
+                    break;
+                }
+            }
+        }
+
+        group_idx = (group_idx + 1) % 2;
+
+        // fill missing lines
+        for (int i = idx; i < 3; i++) {
+            Serial.print(",,,,");
+        }
+        Serial.println();
+
+        Serial.println("Printing whole payload");
+        Serial.println(payload);
       }
       else
       {
@@ -138,6 +181,11 @@ void loop()
   http.stop();
 
   // And just stop, now that we've tried a download
-  while(1);
-  // use delay(5000); and remove while to start loop
+  // while(1);
+  Serial.println("Wait thirty seconds");
+  /*
+  wait 10 seconds to refresh, there are 86,400s/day, max call is 50,000/day, so lets call every 10s? 8,640 calls
+  Next train arrival information is refreshed once every 20 to 30 seconds approximately.
+  */
+  delay(30000); 
 }
