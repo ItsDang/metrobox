@@ -1,6 +1,14 @@
+// get information libs
 #include "WiFiS3.h"
-#include <HttpClient.h>
+#include "HttpClient.h"
 #include "ArduinoJson.h"
+
+// display libs
+#include "SPI.h"
+#include "Adafruit_GFX.h"
+#include "Adafruit_ILI9341.h"
+
+// wifi and api key
 #include "arduino_secrets.h"
 
 // template based on https://github.com/amcewen/HttpClient/blob/master/examples/SimpleHttpExample/SimpleHttpExample.ino
@@ -19,12 +27,20 @@ const char kHostname[] = "api.wmata.com";
 // Path to download (this is the bit after the hostname in the URL
 // that you want to download
 const char kPath[] = "/StationPrediction.svc/json/GetPrediction/E01";
+const char stationPath[] = "/Rail.svc/json/jStationInfo?StationCode=E01";
 
 // Number of milliseconds to wait without receiving any data before we give up
 const int kNetworkTimeout = 30*1000;
 // Number of milliseconds to wait if no data is available before trying again
 const int kNetworkDelay = 1000;
 int status = WL_IDLE_STATUS;
+
+// For the Adafruit shield, these are the default.
+#define TFT_DC 9
+#define TFT_CS 10
+
+// Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
+Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
 
 void setup() {
 /* -------------------------------------------------------------------------- */  
@@ -56,8 +72,204 @@ void setup() {
     // wait 10 seconds for connection:
     delay(10000);
   }
+
+  tft.begin();
+  tft.fillScreen(ILI9341_BLACK);
+  tft.setRotation(3); // so cable is low
+
+  // read diagnostics (optional but can help debug problems)
+  uint8_t x = tft.readcommand8(ILI9341_RDMODE);
+  Serial.print("Display Power Mode: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDMADCTL);
+  Serial.print("MADCTL Mode: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDPIXFMT);
+  Serial.print("Pixel Format: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDIMGFMT);
+  Serial.print("Image Format: 0x"); Serial.println(x, HEX);
+  x = tft.readcommand8(ILI9341_RDSELFDIAG);
+  Serial.print("Self Diagnostic: 0x"); Serial.println(x, HEX);
+
+  getStation();
 }
 
+void getStation()
+{
+  int err = 0;
+
+  WiFiClient wc;
+  HttpClient http(wc);
+  Serial.println("making GET request");
+  http.beginRequest();
+  http.get(kHostname, stationPath);
+  http.sendHeader("api_key", apikey);
+  http.endRequest();
+  if (err == 0)
+  {
+    Serial.println("startedRequest ok");
+
+    err = http.responseStatusCode();
+    if (err >= 0)
+    {
+      Serial.print("Got status code: ");
+      Serial.println(err);
+
+      // Usually you'd check that the response code is 200 or a
+      // similar "success" code (200-299) before carrying on,
+      // but we'll print out whatever response we get
+
+      err = http.skipResponseHeaders();
+      if (err >= 0)
+      {
+        int bodyLen = http.contentLength();
+        Serial.print("Content length is: ");
+        Serial.println(bodyLen);
+        Serial.println();
+        Serial.println("Body returned follows:");
+      
+        // Now we've got to the body, so we can print it out
+        unsigned long timeoutStart = millis();
+        String payload;
+        char bodyByte;
+        // Whilst we haven't timed out & haven't reached the end of the body
+        while ( (http.connected() || http.available()) &&
+               ((millis() - timeoutStart) < kNetworkTimeout) )
+        {
+            if (http.available())
+            {
+                bodyByte = http.read();
+                // Print out this character
+                // Serial.print(bodyByte);
+                payload += bodyByte;
+               
+                bodyLen--;
+                // We read something, reset the timeout counter
+                timeoutStart = millis();
+            }
+            else
+            {
+                // We haven't got any data, so let's pause to allow some to
+                // arrive
+                delay(kNetworkDelay);
+            }
+        }
+        // 256 kB Flash, 32 kB RAM // for now storing whole thing
+        // following https://arduinojson.org/v7/example/parser/
+        JsonDocument doc;
+        DeserializationError error = deserializeJson(doc, payload);
+
+        // Test if parsing succeeds.
+        if (error) {
+            Serial.print(F("deserializeJson() failed: "));
+            Serial.println(error.f_str());
+            return;
+        }
+        Serial.println("PAYLOAD");
+        Serial.println(payload);
+        Serial.println("PAYLOAD JSON");
+        Serial.println(doc["Name"].as<String>());
+        JsonObject Station = doc.as<JsonObject>();
+        showStation(doc["Name"].as<String>(),doc["LineCode1"].as<String>(),doc["LineCode2"].as<String>(),doc["LineCode3"].as<String>(),doc["LineCode4"].as<String>());
+      }
+      else
+      {
+        Serial.print("Failed to skip response headers: ");
+        Serial.println(err);
+      }
+    }
+    else
+    {    
+      Serial.print("Getting response failed: ");
+      Serial.println(err);
+    }
+  }
+  else
+  {
+    Serial.print("Connect failed: ");
+    Serial.println(err);
+  }
+  http.stop();
+}
+
+void showStation(String stationName, String LineCode1, String LineCode2, String LineCode3, String LineCode4)
+{
+  // first clear the station space
+  tft.fillRect(0,0,ILI9341_TFTWIDTH,ILI9341_TFTHEIGHT/5,ILI9341_BLACK);
+  // then draw the line rectangles
+  int lines = 0;
+  if(LineCode1 != "null") {
+    tft.fillRect(ILI9341_TFTWIDTH/20*lines,0,ILI9341_TFTWIDTH/20,ILI9341_TFTHEIGHT/5,getColorFromLine(LineCode1,0));
+    lines++;
+  }
+  if(LineCode2 != "null") {
+    tft.fillRect(ILI9341_TFTWIDTH/20*lines,0,ILI9341_TFTWIDTH/20,ILI9341_TFTHEIGHT/5,getColorFromLine(LineCode2,0));
+    lines++;
+  } 
+  if(LineCode3 != "null") {
+    tft.fillRect(ILI9341_TFTWIDTH/20*lines,0,ILI9341_TFTWIDTH/20,ILI9341_TFTHEIGHT/5,getColorFromLine(LineCode3,0));
+    lines++;
+  } 
+  if(LineCode4 != "null") {
+    tft.fillRect(ILI9341_TFTWIDTH/20*lines,0,ILI9341_TFTWIDTH/20,ILI9341_TFTHEIGHT/5,getColorFromLine(LineCode4,0));
+    lines++;
+  }
+  tft.setFont(NULL);
+  tft.setTextColor(ILI9341_WHITE);
+  tft.setTextSize(3); // 3 fits
+  tft.setCursor(ILI9341_TFTWIDTH/20*lines,0);
+  tft.print(stationName);
+//   tft.print("LN CAR DEST ");
+//   tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
+//   tft.println("MIN");
+}
+
+// useful reference https://github.com/newdigate/rgb565_colors
+// these are defined in Adafruit_ILI9341.h
+// see https://rgbcolorpicker.com/ and convert directly from the SVGs?
+#define BLACK   0x0000 // #define ILI9341_BLACK 0x0000
+#define RED     0xf0e3 // #define ILI9341_RED 0xF800
+#define ORANGE  0xfbc0 // #define ILI9341_ORANGE 0xFD20
+#define BLUE    0x1af8 // #define ILI9341_BLUE 0x001F
+#define GREEN   0x0520 // #define ILI9341_GREEN 0x07E0 
+#define YELLOW  0xef61 // #define ILI9341_YELLOW 0xFFE0
+#define WHITE   0xFFFF // #define ILI9341_WHITE 0xFFFF  
+#define GREY    0x8c51 // #define ILI9341_LIGHTGREY 0xC618 #define ILI9341_DARKGREY 0x7BEF 
+#define TRAIN   0xFD20 // like a yellow orange
+// from the svgs
+#define SVG_BLUE 0x03d8 //"#0079C5"
+#define SVG_GREEN 0x1569 //"#13AE4E"
+#define SVG_ORANGE 0xfc85//"#FF9127"
+#define SVG_RED 0xf165 //"#FA2C2D"
+#define SVG_SILVER 0x9d34 //"#9BA6A3"
+#define SVG_YELLOW 0xfe67 //"#FFCE36"
+
+uint16_t getColorFromLine(String line, int colorScheme)
+{
+  if(colorScheme == 0) { // original metro box colors, though this is with different display
+    if (line == "WH") return WHITE;
+    if (line == "RD") return RED;
+    if (line == "OR") return ORANGE;
+    if (line == "BL") return BLUE;
+    if (line == "GR") return GREEN;
+    if (line == "YL") return YELLOW;
+    if (line == "SV") return GREY;
+  } else if(colorScheme == 1) { // ILI9341 colors
+    if (line == "WH") return ILI9341_WHITE;
+    if (line == "RD") return ILI9341_RED;
+    if (line == "OR") return ILI9341_ORANGE;
+    if (line == "BL") return ILI9341_BLUE;
+    if (line == "GR") return ILI9341_GREEN;
+    if (line == "YL") return ILI9341_YELLOW;
+    if (line == "SV") return GREY;
+  } else { // colors from the SVGs
+    if (line == "WH") return ILI9341_WHITE;
+    if (line == "RD") return SVG_RED;
+    if (line == "OR") return SVG_ORANGE;
+    if (line == "BL") return SVG_BLUE;
+    if (line == "GR") return SVG_GREEN;
+    if (line == "YL") return SVG_YELLOW;
+    if (line == "SV") return SVG_SILVER;
+  }
+}
 
 String groups[] = {"1", "2"};
 int group_idx = 0;
@@ -137,12 +349,16 @@ void loop()
         // then code from original
         int idx = 0;
         Serial.print("T:");
+        // tft.fillScreen(ILI9341_BLACK); // reset screen
+        // showHeader();
+        // need to understand what this does, check agaisnt terminal stations to see if it removes the dups there
         for (JsonObject Train : doc["Trains"].as<JsonArray>()) {
             if (Train["Group"].as<String>() == groups[group_idx]) {
                 Serial.print(Train["Line"].as<String>() + ',');
                 Serial.print(Train["Car"].as<String>() + ',');
                 Serial.print(Train["Destination"].as<String>() + ',');
                 Serial.print(Train["Min"].as<String>() + ',');
+                showTrains(Train["Line"].as<String>(),Train["Car"].as<String>(),Train["Destination"].as<String>(),Train["Min"].as<String>());
                 idx++;
                 if (idx == 3) {
                     break;
@@ -152,7 +368,7 @@ void loop()
 
         group_idx = (group_idx + 1) % 2;
 
-        // fill missing lines
+        // fill missing lines // don't need because I'm not reading serial
         for (int i = idx; i < 3; i++) {
             Serial.print(",,,,");
         }
@@ -188,4 +404,31 @@ void loop()
   Next train arrival information is refreshed once every 20 to 30 seconds approximately.
   */
   delay(30000); 
+}
+
+void showHeader(){
+  tft.setFont(NULL);
+  tft.setTextColor(ILI9341_RED);
+  tft.setTextSize(3); // 3 fits
+  tft.setCursor(0,0);
+  tft.print("LN CAR DEST   MIN");
+//   tft.print("LN CAR DEST ");
+//   tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
+//   tft.println("MIN");
+}
+
+void showTrains(String line, String car, String destination, String minutes)
+{
+    tft.setFont(NULL);
+    tft.setTextColor(ILI9341_ORANGE);
+    tft.print(line);
+    // tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
+    tft.print(" "); // to be replace with tft.setCursor(0, 0);
+    tft.print(car);
+    // tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
+    tft.print(" "); // to be replace with tft.setCursor(0, 0);
+    tft.print(destination);
+    // tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
+    tft.print(" "); // to be replace with tft.setCursor(0, 0);
+    tft.println(minutes);
 }
