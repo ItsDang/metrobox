@@ -44,8 +44,12 @@ Once you have an account, go to Products -> Default Tier and subscribe a new pro
 Find your station name's corresponding 3-digit code in [wmata_station_codes.csv](wmata_station_codes.csv). Some stations have multiple platforms, so be sure you choose the correct platform with the lines you typically take. Keep this page open as well.
 
 #### Update arduino_secrets.h
-Open Arduino IDE and open arduino_secrets.h
-Update the Wifi Credentials, the API key and the Station Code and save the file.
+Open Arduino IDE and open matt_metrobox.ino.
+Switch to tab named arduino_secrets_template.h.
+Update the Wifi Credentials, the API key and the Station Code and rename the file to arduino_secrets.h.
+<img width="1078" alt="Screenshot 2025-07-04 at 6 14 50 PM" src="https://github.com/user-attachments/assets/8d3ee4d9-4c31-4fd9-8e57-b99af88732a4" />
+<img width="480" alt="Screenshot 2025-07-04 at 6 15 00 PM" src="https://github.com/user-attachments/assets/0f298b04-0317-4753-b1d7-cccbae687df1" />
+<img width="585" alt="Screenshot 2025-07-04 at 6 10 12 PM" src="https://github.com/user-attachments/assets/27fb52f2-dcea-498d-aac6-8fbf1fdec3da" />
 
 #### Upload matt_metrobox.ino
 Open matt_metrobox.ino and [upload the sketch](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-uploading-a-sketch/).
