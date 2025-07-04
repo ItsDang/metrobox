@@ -59,6 +59,9 @@ int status = WL_IDLE_STATUS;
 
 // Use hardware SPI (on Uno, #13, #12, #11) and the above for CS/DC
 Adafruit_ILI9341 tft = Adafruit_ILI9341(TFT_CS, TFT_DC);
+const int COLOR_LINE_TFTWIDTH =  ILI9341_TFTHEIGHT / 40;
+const int LINE_TFTHEIGHT = ILI9341_TFTWIDTH / 10;
+const int COLOR_LINE_TFTHEIGHT =  LINE_TFTHEIGHT * 3;
 
 void setup() {
     //Initialize serial and wait for port to open:
@@ -214,23 +217,23 @@ void getStation() {
 
 void showStation(String stationName, String LineCode1, String LineCode2, String LineCode3, String LineCode4) {
   // first clear the station space
-  tft.fillRect(0, 0, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 5, ILI9341_BLACK);
+  tft.fillRect(0, 0, ILI9341_TFTHEIGHT, COLOR_LINE_TFTHEIGHT, ILI9341_BLACK);
   // then draw the line rectangles
   int lines = 0;
   if (LineCode1 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode1, 0));
+    tft.fillRect(COLOR_LINE_TFTWIDTH * lines, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, getColorFromLine(LineCode1, 0));
     lines++;
   }
   if (LineCode2 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode2, 0));
+    tft.fillRect(COLOR_LINE_TFTWIDTH * lines, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, getColorFromLine(LineCode2, 0));
     lines++;
   }
   if (LineCode3 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode3, 0));
+    tft.fillRect(COLOR_LINE_TFTWIDTH * lines, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, getColorFromLine(LineCode3, 0));
     lines++;
   }
   if (LineCode4 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode4, 0));
+    tft.fillRect(COLOR_LINE_TFTWIDTH * lines, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, getColorFromLine(LineCode4, 0));
     lines++;
   }
 
@@ -244,7 +247,7 @@ void showStation(String stationName, String LineCode1, String LineCode2, String 
 For basic testing, cut station name into strings of 16.
 */
 void printStationNames16(String stationName, int lines) {
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, 0);
+  tft.setCursor(COLOR_LINE_TFTWIDTH * lines, 0);
   String stationNameLine1 = stationName.substring(0, 16);
   String stationNameLine2 = stationName.substring(16, 32);
   String stationNameLine3 = stationName.substring(32);
@@ -252,9 +255,9 @@ void printStationNames16(String stationName, int lines) {
   Serial.println(stationNameLine2);
   Serial.println(stationNameLine3);
   tft.println(stationNameLine1);
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 1);
+  tft.setCursor(COLOR_LINE_TFTWIDTH * lines, LINE_TFTHEIGHT * 1);
   tft.println(stationNameLine2);
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 2);
+  tft.setCursor(COLOR_LINE_TFTWIDTH * lines, LINE_TFTHEIGHT * 2);
   tft.println(stationNameLine3);
 }
 
@@ -275,7 +278,7 @@ void printStationNameFormatted(String stationName, int lines) {
   int startIndex = 0;
   for (int line = 0; line < 3; line++) {
     Serial.println("LINE: " + String(line));
-    tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * line);
+    tft.setCursor(COLOR_LINE_TFTWIDTH * lines, LINE_TFTHEIGHT * line);
     int searchBackFrom = 16;
     if (lines == 1) {
       searchBackFrom += 1;
@@ -372,25 +375,25 @@ To help visualize the layout.
 void testLayout() {
   tft.setTextSize(3);
   // station line colors
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 0, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_RED);
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 1, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_BLUE);
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 2, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, GREY);
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 3, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_GREEN);
+  tft.fillRect(COLOR_LINE_TFTWIDTH * 0, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, ILI9341_RED);
+  tft.fillRect(COLOR_LINE_TFTWIDTH * 1, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, ILI9341_BLUE);
+  tft.fillRect(COLOR_LINE_TFTWIDTH * 2, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, GREY);
+  tft.fillRect(COLOR_LINE_TFTWIDTH * 3, 0, COLOR_LINE_TFTWIDTH, COLOR_LINE_TFTHEIGHT, ILI9341_GREEN);
   // station
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 4, 0, ILI9341_TFTHEIGHT / 40 * 36, ILI9341_TFTWIDTH / 10 * 3, ILI9341_PINK);
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4, 0);
+  tft.fillRect(COLOR_LINE_TFTWIDTH * 4, 0, COLOR_LINE_TFTWIDTH * 36, COLOR_LINE_TFTHEIGHT, ILI9341_PINK);
+  tft.setCursor(COLOR_LINE_TFTWIDTH * 4, 0);
   tft.println("U Street/African1");
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4, ILI9341_TFTWIDTH / 10);
+  tft.setCursor(COLOR_LINE_TFTWIDTH * 4, LINE_TFTHEIGHT);
   tft.println("-Amer Civil War 1");
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4, ILI9341_TFTWIDTH / 10 * 2);
+  tft.setCursor(COLOR_LINE_TFTWIDTH * 4, LINE_TFTHEIGHT * 2);
   tft.println("Memorial/Cardozo1");
   // header
-  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 3, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 1, ILI9341_RED);
-  tft.setCursor(0, ILI9341_TFTWIDTH / 10 * 3);
+  tft.fillRect(0, COLOR_LINE_TFTHEIGHT, ILI9341_TFTHEIGHT, LINE_TFTHEIGHT * 1, ILI9341_RED);
+  tft.setCursor(0, COLOR_LINE_TFTHEIGHT);
   tft.println("LN CAR DEST   MIN");
   // lines
-  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 4, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 6, ILI9341_NAVY);
-  tft.setCursor(0, ILI9341_TFTWIDTH / 10 * 4);
+  tft.fillRect(0, LINE_TFTHEIGHT * 4, ILI9341_TFTHEIGHT, LINE_TFTHEIGHT * 6, ILI9341_NAVY);
+  tft.setCursor(0, LINE_TFTHEIGHT * 4);
   tft.println("GR 8   MT VERNON-CNV CT ARR");
   tft.println("GR 8   MT VERNON-CNV CT ARR");
   tft.println("GR 8   MT VERNON-CNV CT ARR");
@@ -475,8 +478,8 @@ void getStationPredictions() {
         int idx = 0;
         Serial.print("T:");
         showHeader();
-        tft.setCursor(0, ILI9341_TFTWIDTH / 10 * 4);
-        tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 4, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 6, ILI9341_BLACK);  // reset screen
+        tft.setCursor(0, LINE_TFTHEIGHT * 4);
+        tft.fillRect(0, LINE_TFTHEIGHT * 4, ILI9341_TFTHEIGHT, LINE_TFTHEIGHT * 6, ILI9341_BLACK);  // reset screen
         // need to understand what this does, check agaisnt terminal stations to see if it removes the dups there
         for (JsonObject Train : doc["Trains"].as<JsonArray>()) {
           if (Train["Group"].as<String>() == groups[group_idx]) {
@@ -515,7 +518,7 @@ void showHeader() {
   tft.setFont(NULL);
   tft.setTextColor(ILI9341_RED);
   tft.setTextSize(3);
-  tft.setCursor(0, ILI9341_TFTWIDTH / 10 * 3);
+  tft.setCursor(0, COLOR_LINE_TFTHEIGHT);
   tft.print("LN CAR DEST   MIN");
 }
 
