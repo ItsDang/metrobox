@@ -206,26 +206,37 @@ void showStation(String stationName, String LineCode1, String LineCode2, String 
   // then draw the line rectangles
   int lines = 0;
   if (LineCode1 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode1, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode1, 0));
     lines++;
   }
   if (LineCode2 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode2, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode2, 0));
     lines++;
   }
   if (LineCode3 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode3, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode3, 0));
     lines++;
   }
   if (LineCode4 != "null") {
-    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode4, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, getColorFromLine(LineCode4, 0));
     lines++;
   }
+
   tft.setFont(NULL);
   tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(2);  // 3 fits
-  tft.setCursor(ILI9341_TFTWIDTH / 20 * lines, 0);
-  tft.print(stationName);
+  tft.setTextSize(3);  // 3 fits
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, 0);
+  String stationNameLine1 = stationName.substring(0, 16);
+  String stationNameLine2 = stationName.substring(16, 32);
+  String stationNameLine3 = stationName.substring(32);
+  Serial.println(stationNameLine1);
+  Serial.println(stationNameLine2);
+  Serial.println(stationNameLine3);
+  tft.println(stationNameLine1);
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 1);
+  tft.println(stationNameLine2);
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 2);
+  tft.println(stationNameLine3);
   //   tft.print("LN CAR DEST ");
   //   tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
   //   tft.println("MIN");
@@ -283,8 +294,8 @@ String groups[] = { "1", "2" };
 int group_idx = 0;
 
 void loop() {
-  testLayout();  
-  // real();
+  // testLayout();  
+  real();
   // And just stop, now that we've tried a download
   // while(1);
   /*
@@ -295,35 +306,19 @@ void loop() {
   delay(30000);
 }
 
-void testLayout(){
-  tft.setTextSize(3);
-  // station line colors
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 0, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_RED);
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 1, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_BLUE);
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 2, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, GREY);
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 3, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_GREEN);
-  // station
-  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 4, 0, ILI9341_TFTHEIGHT / 40 * 36, ILI9341_TFTWIDTH / 10 * 3, ILI9341_PINK); 
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,0);
-  tft.println("U Street/Africa");
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,ILI9341_TFTWIDTH / 10);
-  tft.println("n-Amer Civil Wa");
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,ILI9341_TFTWIDTH / 10 * 2);
-  tft.println("r Memorial/Cardozo");
-  // header
-  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 3, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 1, ILI9341_RED);
-  tft.setCursor(0,ILI9341_TFTWIDTH / 10 * 3);
-  tft.println("LN CAR DEST   MIN");
-  // lines
-  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 4, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 6, ILI9341_NAVY); 
-  tft.setCursor(0,ILI9341_TFTWIDTH / 10 * 4);
-  tft.println("GR 8 MT VERNON-CNV CT ARR");
-  tft.println("GR 8 MT VERNON-CNV CT ARR");
-  tft.println("GR 8 MT VERNON-CNV CT ARR");
-}
+// max chars per line with the station color lines
+// 1 max 17
+// 2 max 16
+// 3 max 16
+// 4 max 16
+// lazy way first, cut into strings of 16
+// stations with -, have - then \n
+// any outliers?
+// stations with " "
+// the stations to split,
+// if less that max don't worry about splitting
+// count to 16, if see any ' ', '-', '/' then keep on that line then new line
 
-// have to swap heigth and width around
-void test() {
   // station info
 
   // header
@@ -334,8 +329,31 @@ void test() {
 
   // probably best to save space by either removing a char from line and ARR or BRD
   // and tighten the spacing via cursor shifting instead of spaces
-  
-  tft.fillRect(0, ILI9341_TFTWIDTH / 5 * 2, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 5 * 4, ILI9341_BLUE); 
+void testLayout(){
+  tft.setTextSize(3);
+  // station line colors
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 0, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_RED);
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 1, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_BLUE);
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 2, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, GREY);
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 3, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_GREEN);
+  // station
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 4, 0, ILI9341_TFTHEIGHT / 40 * 36, ILI9341_TFTWIDTH / 10 * 3, ILI9341_PINK); 
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,0);
+  tft.println("U Street/African1");
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,ILI9341_TFTWIDTH / 10);
+  tft.println("-Amer Civil War 1");
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,ILI9341_TFTWIDTH / 10 * 2);
+  tft.println("Memorial/Cardozo1");
+  // header
+  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 3, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 1, ILI9341_RED);
+  tft.setCursor(0,ILI9341_TFTWIDTH / 10 * 3);
+  tft.println("LN CAR DEST   MIN");
+  // lines
+  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 4, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 6, ILI9341_NAVY); 
+  tft.setCursor(0,ILI9341_TFTWIDTH / 10 * 4);
+  tft.println("GR 8   MT VERNON-CNV CT ARR");
+  tft.println("GR 8   MT VERNON-CNV CT ARR");
+  tft.println("GR 8   MT VERNON-CNV CT ARR");
 }
 
 void real() {
@@ -406,8 +424,8 @@ void real() {
         Serial.print("T:");
         showHeader();
         // was in showTrains earlier so only showed one line
-        tft.setCursor(0, ILI9341_TFTWIDTH / 5 * 2);
-        tft.fillRect(0, ILI9341_TFTWIDTH / 5 * 2, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 5 * 3, ILI9341_BLACK);   // reset screen
+        tft.setCursor(0,ILI9341_TFTWIDTH / 10 * 4);
+        tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 4, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 6, ILI9341_BLACK);    // reset screen
         // need to understand what this does, check agaisnt terminal stations to see if it removes the dups there
         for (JsonObject Train : doc["Trains"].as<JsonArray>()) {
           if (Train["Group"].as<String>() == groups[group_idx]) {
@@ -452,7 +470,7 @@ void showHeader() {
   tft.setFont(NULL);
   tft.setTextColor(ILI9341_RED);
   tft.setTextSize(3);  // 3 fits
-  tft.setCursor(0, ILI9341_TFTWIDTH / 5);
+  tft.setCursor(0, ILI9341_TFTWIDTH / 10 * 3);
   tft.print("LN CAR DEST   MIN");
 }
 
