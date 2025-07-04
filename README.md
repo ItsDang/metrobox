@@ -6,8 +6,28 @@ Source code and build for a miniature WMATA Metrorail train arrivals board.
 
 ---
 
-## Configuring a Ready-to-Use Metrobox
+## Parts and Build
 
+To make this yourself, you will need the following
+- [Arduino Uno R4 Wifi](https://store-usa.arduino.cc/products/uno-r4-wifi)
+- [2.8" TFT Touch Shield for Arduino with Resistive Touch Screen v2 - STEMMA QT / Qwiic](https://www.adafruit.com/product/1651)
+- USB-C cable(optionally right-angled)
+- 3D printer or access to 3D printing services
+
+Altogether the total cost should come out to around $50-55.
+
+![components](https://github.com/user-attachments/assets/339163df-8bea-435f-b5e7-586ea0b838e8)
+
+### Uploading Software
+
+1. Install the [Arduino IDE](https://www.arduino.cc/en/software/).
+2. Install the Arduino Uno R4 Boards platform into [Arduino IDE Boards Manager](https://docs.arduino.cc/software/ide-v2/tutorials/ide-v2-board-manager/)
+3. [Add libraries](https://docs.arduino.cc/software/ide-v2/tutorials/ide-v2-installing-a-library/) WiFiManager, ArduinoJson, MCUFRIEND_kbv, and Adafruit GFX Library.
+4. You are now ready to begin [uploading sketches](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-uploading-a-sketch/) to the board. To start, ensure that the Arduino UNO R4 Wifi is recognized by Arduino IDE when plugged into the computer.
+
+Make sure for the following steps that your Serial Monitor baud rate is set to 9600.
+
+### Configuring the Metrobox
 #### Obtain a WMATA API key
 
 1. Sign up for an account at https://developer.wmata.com/signup/ and verify your email.
@@ -23,95 +43,9 @@ Once you have an account, go to Products -> Default Tier and subscribe a new pro
 
 Find your station name's corresponding 3-digit code in [wmata_station_codes.csv](wmata_station_codes.csv). Some stations have multiple platforms, so be sure you choose the correct platform with the lines you typically take. Keep this page open as well.
 
-#### Configuring the Metrobox
+#### Update arduino_secrets.h
+Open Arduino IDE and open arduino_secrets.h
+Update the Wifi Credentials, the API key and the Station Code and save the file.
 
-1. Plug in the box. You should see a message saying `Connect to "Metrobox" to set up`. If you don't see this and instead it shows `Connection established` and begins to show times for an unwanted station, follow the instructions in [Resetting](#Resetting), then come back to this section.
-
-You can do the following on either a phone or a computer, but it will be easier on the same computer that you performed the above steps on since you will be able to copy-paste the API key.
-
-2. Go to where you would normally connect to a WiFi network and connect to the Access Point "Metrobox" with the password "metrobox". You will lose Internet access on this device until setup is complete, so be sure to keep the API key and station code on hand.
-
-3. A captive portal should open. Click on "Configure WiFi" and fill in your WiFi settings, the primary API key, and the station code (notional example below).
-
-<img src="https://github.com/user-attachments/assets/1a730281-59ac-4a62-aeeb-b104c2cb84c9" width="400">
-
-Once you hit "Save", the box should display `Connection established` and begin to display arrival times. You can then reconnect back to the Internet on your device.
-
-The box is now successfully configured and will automatically function with the same settings if unplugged and restarted.
-
-#### Resetting
-
-If your box is already auto-connecting to your WiFi, you will have to reset the box in order to change stations or API keys after configuration. Upon connection, you should see a message saying `Visit http://<ip_address>/reset to reset`. Do this on any device that is connected to the same WiFi network and you should receive a message saying `Resetting configuration`.
-
-The box should no longer auto-connect and you can follow the instructions in [Configuring the Metrobox](#Configuring-the-Metrobox) to set it up again.
-
----
-
-## Parts and Build
-
-Note: After buying parts from various AliExpress sellers I have confirmed that the 3D models may not work for all parts, as there are discrepancies in dimensions and fit between different products of the same type. Additionally, the specific products that I purchased have been taken down and are no longer available. I am thinking of how to solve this but in the meantime if you plan to purchase your own parts and replicate this project feel free to leave an issue or contact me and I can advise further. 
-
-To make this yourself, you will need the following (links may need updating):
-- UNO R3 + WIFI ESP8266, [example "UNO R3 Black"](https://www.aliexpress.us/item/3256806816026732.html)
-- 3.5" TFT LCD Shield for Arduino Uno (no touchscreen), [example "Without Touch"](https://www.aliexpress.us/item/3256806911484514.html)
-- Micro-USB cable, [optionally right-angled and the same color as the case like this example](https://www.aliexpress.us/item/3256806917070642.html)
-- 3D printer or access to 3D printing services
-
-Altogether the total cost should come out to around $15-20, depending on international trade climate and other factors.
-
-![components](https://github.com/user-attachments/assets/339163df-8bea-435f-b5e7-586ea0b838e8)
-
-### Uploading Software
-
-1. Install the [Arduino IDE](https://www.arduino.cc/en/software/).
-2. [Install the ESP8266 platform into Arduino IDE Boards Manager](https://github.com/esp8266/Arduino?tab=readme-ov-file#installing-with-boards-manager)
-3. [Add libraries](https://support.arduino.cc/hc/en-us/articles/5145457742236-Add-libraries-to-Arduino-IDE) WiFiManager, ArduinoJson, MCUFRIEND_kbv, and Adafruit GFX Library.
-4. You are now ready to begin [uploading sketches](https://support.arduino.cc/hc/en-us/articles/4733418441116-Upload-a-sketch-in-Arduino-IDE) to the board. To start, ensure that the UNO R3 is recognized by Arduino IDE when plugged into the computer. If not, you may need to install the [CH340G drivers](https://www.wch.cn/downloads/CH341SER_ZIP.html).
-
-The board controls communications using a DIP switch as pictured below. You will need to use a small needle or pin to set the switches appropriately for each of the next steps.
-
-![dip switch](https://github.com/user-attachments/assets/9ed1c4f8-131f-44bb-a8a0-c41e6dd24821)
-![setups](https://github.com/user-attachments/assets/d50c6346-fb41-4efa-9b78-ec938e37b345)
-
-Make sure for the following steps that your Serial Monitor baud rate is set to 9600.
-
-a. With only switches 5, 6, and 7 in the "on" position, upload `get_trains.ino` with board type set to "Generic ESP8266 Module".
-
-b. With only switches 3 and 4 in the "on" position, upload `display_metro.ino` with board type set to "Arduino UNO".
-
-Optional: It seems that the LCD shield parts have minor variations in color display, so the line colors may not appear as expected. You can test out the screen functionality as follows - after uploading this file, with the board connected, open Serial Monitor and enter "[CONNECTED]". Wait for the screen to go black after the 10 seconds and enter "S:TEST,BL,OR,SV,RD,GR,YL,". You should be able to see all possible color bars for the lines. If any seem off, you can tune the colors defined in the beginning of the file and re-upload. I use https://rgbcolorpicker.com/565 to find new values.
-
-c. Set only switches 1 and 2 to the "on" position.
-
-If all uploads succeeded, you are ready to move on to the assembly portion.
-
-### Printing and Assembly
-
-3D print files and information can be found [here](https://www.thingiverse.com/thing:7031113).
-
-Note: After buying parts from various AliExpress sellers I have confirmed that the 3D models may not work for all parts, as there are discrepancies in dimensions and fit between different products of the same type. Additionally, the specific products that I purchased have been taken down and are no longer available. I am thinking of how to solve this but in the meantime if you plan to purchase your own parts and replicate this project feel free to leave an issue or contact me and I can advise further.
-
-The 3D print files were created using these product links (which I think may have since been taken down and replaced with different parts):
-
-https://www.aliexpress.us/item/3256804704287770.html (3.5 inch 480*320 TFT LCD Module Screen Display ILI9486 Controller for Arduino UNO MEGA2560 Board: Without Touch Panel)
-
-https://www.aliexpress.us/item/3256806674644408.html (UNO R3 Official ATMEGA16U2 / UNO+WiFi R3 MEGA328P Chip CH340G For Arduino UNO R3 Development Board WeMos ESP8266: UNO R3 Black)
-
-
-#### Assembly Steps:
-
-Note: The solders below the barrel power connector on the Arduino needed to be clipped off in order for it to fit (TODO: add picture).
-
-1. Place the UNO R3 board inside the case so that the ports line up with the holes.
-
-![494358693_949836297227734_8370262248152707982_n 1](https://github.com/user-attachments/assets/b35d52f9-d78a-41cd-b75d-a1778da796ea)
-
-2. Line up the TFT shield pins with the UNO R3 and connect the two components.
-
-![494812978_1202707301205929_8375195684690110429_n 1](https://github.com/user-attachments/assets/fc94184a-7a6b-45d9-ac89-981b0ad9e400)
-
-3. Place and snap the cover on.
-
-![494860804_1945757139497187_8018358129188421132_n 1](https://github.com/user-attachments/assets/ea6cfae6-b9d7-4bf4-8b8e-7586797b5957)
-
-The Metrobox is now complete and ready for [Configuring a Ready-to-Use Metrobox](#Configuring-a-Ready-to-Use-Metrobox).
+#### Upload matt_metrobox.ino
+Open matt_metrobox.ino and [upload the sketch](https://docs.arduino.cc/software/ide-v2/tutorials/getting-started/ide-v2-uploading-a-sketch/).
