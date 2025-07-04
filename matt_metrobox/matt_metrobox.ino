@@ -225,21 +225,56 @@ void showStation(String stationName, String LineCode1, String LineCode2, String 
   tft.setFont(NULL);
   tft.setTextColor(ILI9341_WHITE);
   tft.setTextSize(3);  // 3 fits
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, 0);
-  String stationNameLine1 = stationName.substring(0, 16);
-  String stationNameLine2 = stationName.substring(16, 32);
-  String stationNameLine3 = stationName.substring(32);
-  Serial.println(stationNameLine1);
-  Serial.println(stationNameLine2);
-  Serial.println(stationNameLine3);
-  tft.println(stationNameLine1);
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 1);
-  tft.println(stationNameLine2);
-  tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 2);
-  tft.println(stationNameLine3);
-  //   tft.print("LN CAR DEST ");
-  //   tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
-  //   tft.println("MIN");
+
+  printStationNameFormatted(stationName, lines);
+  // tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, 0);
+  // String stationNameLine1 = stationName.substring(0, 16);
+  // String stationNameLine2 = stationName.substring(16, 32);
+  // String stationNameLine3 = stationName.substring(32);
+  // Serial.println(stationNameLine1);
+  // Serial.println(stationNameLine2);
+  // Serial.println(stationNameLine3);
+  // tft.println(stationNameLine1);
+  // tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 1);
+  // tft.println(stationNameLine2);
+  // tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * 2);
+  // tft.println(stationNameLine3);
+}
+
+void printStationNameFormatted(String stationName, int lines) {
+  // the special cases
+  if(stationName == " ") {
+    Serial.println("HUH");
+  } else { // if can be split based on the last index of ' ' ',' '/' '-' that is less
+    Serial.println("Splitting: "+stationName);
+    int startIndex = 0;
+    for(int line = 0; line < 3; line++) {
+      Serial.println("LINE: " + String(line));
+      tft.setCursor(ILI9341_TFTHEIGHT / 40 * lines, ILI9341_TFTWIDTH / 10 * line);
+      int searchBackFrom = 16;
+      if(lines == 1) {
+        searchBackFrom += 1;
+      }
+      Serial.println("Searching:");
+      String stringToSearch=stationName.substring(startIndex, startIndex+searchBackFrom+1);
+      Serial.println(stringToSearch);
+      int splitIndex = max(stringToSearch.lastIndexOf(' ',searchBackFrom),
+      max(stringToSearch.lastIndexOf(',',searchBackFrom),
+      max(stringToSearch.lastIndexOf('/',searchBackFrom),stringToSearch.lastIndexOf('-',searchBackFrom))));
+      Serial.println("Found " + String(stringToSearch.charAt(splitIndex)) + " at: " + String(splitIndex));
+      Serial.println(stringToSearch.substring(0, splitIndex+1));
+      if(splitIndex == -1 || splitIndex == 0) { // no split so just print out the line and stop
+        tft.println(stringToSearch);
+        break;
+      } else {
+        tft.println(stringToSearch.substring(0, splitIndex));
+        startIndex += splitIndex; // not a ' ' so have to keep on next line, need to check not 1
+        if(stringToSearch.charAt(splitIndex) == ' ') { // ' ' space at end of line, can "delete"
+          startIndex += 1;
+        }
+      }
+    }
+  }
 }
 
 // useful reference https://github.com/newdigate/rgb565_colors
