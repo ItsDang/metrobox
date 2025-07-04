@@ -1,6 +1,6 @@
 # Metrobox
-
-Source code and build for a miniature WMATA Metrorail train arrivals board.
+Based off of https://github.com/TokyoExpress/metrobox.
+Source code and build for a miniature WMATA Metrorail train arrivals board for an Arduino Uno R4 Wifi and a ILI9341 chipset display instead.
 
 ![494856235_698844399746148_1401936910194309229_n 1](https://github.com/user-attachments/assets/a64b9ca4-966c-4bbc-8b6c-76393950ed5d)
 
