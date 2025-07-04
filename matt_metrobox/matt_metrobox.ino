@@ -14,6 +14,9 @@
 // template based on https://github.com/amcewen/HttpClient/blob/master/examples/SimpleHttpExample/SimpleHttpExample.ino
 // and through reading https://github.com/arduino-libraries/ArduinoHttpClient/blob/master/examples/CustomHeader/CustomHeader.ino
 
+// longest station name is E03
+// what is the longest destination?
+
 char ssid[] = SECRET_SSID;  // your network SSID (name)
 char pass[] = SECRET_PASS;  // your network password (use for WPA, or use as key for WEP)
 int keyIndex = 0;           // your network key index number (needed only for WEP)
@@ -199,28 +202,28 @@ void getStation() {
 
 void showStation(String stationName, String LineCode1, String LineCode2, String LineCode3, String LineCode4) {
   // first clear the station space
-  tft.fillRect(0, 0, ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT / 5, ILI9341_BLACK);
+  tft.fillRect(0, 0, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 5, ILI9341_BLACK);
   // then draw the line rectangles
   int lines = 0;
   if (LineCode1 != "null") {
-    tft.fillRect(ILI9341_TFTWIDTH / 20 * lines, 0, ILI9341_TFTWIDTH / 20, ILI9341_TFTHEIGHT / 5, getColorFromLine(LineCode1, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode1, 0));
     lines++;
   }
   if (LineCode2 != "null") {
-    tft.fillRect(ILI9341_TFTWIDTH / 20 * lines, 0, ILI9341_TFTWIDTH / 20, ILI9341_TFTHEIGHT / 5, getColorFromLine(LineCode2, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode2, 0));
     lines++;
   }
   if (LineCode3 != "null") {
-    tft.fillRect(ILI9341_TFTWIDTH / 20 * lines, 0, ILI9341_TFTWIDTH / 20, ILI9341_TFTHEIGHT / 5, getColorFromLine(LineCode3, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode3, 0));
     lines++;
   }
   if (LineCode4 != "null") {
-    tft.fillRect(ILI9341_TFTWIDTH / 20 * lines, 0, ILI9341_TFTWIDTH / 20, ILI9341_TFTHEIGHT / 5, getColorFromLine(LineCode4, 0));
+    tft.fillRect(ILI9341_TFTHEIGHT / 40 * lines, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 5, getColorFromLine(LineCode4, 0));
     lines++;
   }
   tft.setFont(NULL);
   tft.setTextColor(ILI9341_WHITE);
-  tft.setTextSize(3);  // 3 fits
+  tft.setTextSize(2);  // 3 fits
   tft.setCursor(ILI9341_TFTWIDTH / 20 * lines, 0);
   tft.print(stationName);
   //   tft.print("LN CAR DEST ");
@@ -280,6 +283,62 @@ String groups[] = { "1", "2" };
 int group_idx = 0;
 
 void loop() {
+  testLayout();  
+  // real();
+  // And just stop, now that we've tried a download
+  // while(1);
+  /*
+  wait 10 seconds to refresh, there are 86,400s/day, max call is 50,000/day, so lets call every 10s? 8,640 calls
+  Next train arrival information is refreshed once every 20 to 30 seconds approximately.
+  */
+  Serial.println("Wait thirty seconds");
+  delay(30000);
+}
+
+void testLayout(){
+  tft.setTextSize(3);
+  // station line colors
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 0, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_RED);
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 1, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_BLUE);
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 2, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, GREY);
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 3, 0, ILI9341_TFTHEIGHT / 40, ILI9341_TFTWIDTH / 10 * 3, ILI9341_GREEN);
+  // station
+  tft.fillRect(ILI9341_TFTHEIGHT / 40 * 4, 0, ILI9341_TFTHEIGHT / 40 * 36, ILI9341_TFTWIDTH / 10 * 3, ILI9341_PINK); 
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,0);
+  tft.println("U Street/Africa");
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,ILI9341_TFTWIDTH / 10);
+  tft.println("n-Amer Civil Wa");
+  tft.setCursor(ILI9341_TFTHEIGHT / 40 * 4,ILI9341_TFTWIDTH / 10 * 2);
+  tft.println("r Memorial/Cardozo");
+  // header
+  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 3, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 1, ILI9341_RED);
+  tft.setCursor(0,ILI9341_TFTWIDTH / 10 * 3);
+  tft.println("LN CAR DEST   MIN");
+  // lines
+  tft.fillRect(0, ILI9341_TFTWIDTH / 10 * 4, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 10 * 6, ILI9341_NAVY); 
+  tft.setCursor(0,ILI9341_TFTWIDTH / 10 * 4);
+  tft.println("GR 8 MT VERNON-CNV CT ARR");
+  tft.println("GR 8 MT VERNON-CNV CT ARR");
+  tft.println("GR 8 MT VERNON-CNV CT ARR");
+}
+
+// have to swap heigth and width around
+void test() {
+  // station info
+
+  // header
+
+  // train info, ln is two currently, car is single digit,
+  // dest is up to "MT VERNON-CNV CT" AFAIK, so 16 chars,
+  //  min is up to 2 digits or 3 chars for ARR or BRD
+
+  // probably best to save space by either removing a char from line and ARR or BRD
+  // and tighten the spacing via cursor shifting instead of spaces
+  
+  tft.fillRect(0, ILI9341_TFTWIDTH / 5 * 2, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 5 * 4, ILI9341_BLUE); 
+}
+
+void real() {
   int err = 0;
 
   WiFiClient wc;
@@ -346,6 +405,9 @@ void loop() {
         int idx = 0;
         Serial.print("T:");
         showHeader();
+        // was in showTrains earlier so only showed one line
+        tft.setCursor(0, ILI9341_TFTWIDTH / 5 * 2);
+        tft.fillRect(0, ILI9341_TFTWIDTH / 5 * 2, ILI9341_TFTHEIGHT, ILI9341_TFTWIDTH / 5 * 3, ILI9341_BLACK);   // reset screen
         // need to understand what this does, check agaisnt terminal stations to see if it removes the dups there
         for (JsonObject Train : doc["Trains"].as<JsonArray>()) {
           if (Train["Group"].as<String>() == groups[group_idx]) {
@@ -384,31 +446,18 @@ void loop() {
     Serial.println(err);
   }
   http.stop();
-
-  // And just stop, now that we've tried a download
-  // while(1);
-  Serial.println("Wait thirty seconds");
-  /*
-  wait 10 seconds to refresh, there are 86,400s/day, max call is 50,000/day, so lets call every 10s? 8,640 calls
-  Next train arrival information is refreshed once every 20 to 30 seconds approximately.
-  */
-  delay(30000);
 }
 
 void showHeader() {
   tft.setFont(NULL);
   tft.setTextColor(ILI9341_RED);
   tft.setTextSize(3);  // 3 fits
-  tft.setCursor(0, ILI9341_TFTHEIGHT / 5);
+  tft.setCursor(0, ILI9341_TFTWIDTH / 5);
   tft.print("LN CAR DEST   MIN");
-  //   tft.print("LN CAR DEST ");
-  //   tft.setCursor(tft.getCursorX()+5, tft.getCursorY());
-  //   tft.println("MIN");
 }
 
 void showTrains(String line, String car, String destination, String minutes) {
-  tft.fillRect(0, ILI9341_TFTHEIGHT / 5 * 2, ILI9341_TFTWIDTH, ILI9341_TFTHEIGHT / 5 * 4, ILI9341_BLACK);  // reset screen
-  tft.setCursor(0, ILI9341_TFTHEIGHT / 5 * 2);
+  // I think I need to swap height and width here because of the rotation
   tft.setFont(NULL);
   tft.setTextColor(ILI9341_ORANGE);
   tft.setTextColor(TRAIN);
